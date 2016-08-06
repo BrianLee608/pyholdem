@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 class CardUtils():
     suit_unicodes = {'spades': '\u2660', 'diamonds': '\u2666', 
