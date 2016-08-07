@@ -104,10 +104,9 @@ class Round():
         else:
             pos = self.positions.index('BTN')
         
-        action_queue = [
+        action_queue = []
 
         print(self.positions)
-        
 
     def __str__(self):
         return '\n'.join(str(player) for player in self.live_players)
@@ -124,9 +123,8 @@ class Table():
         self.btn_pos = None
         self.deck = Deck()
     
-    def remove_player(self, player_name):
-        self.players = [p for p in self.players if p.name != player_name]
-        pos = self.positions.index('BTN')
+    def del_dead_players(self):
+        self.players = [p for p in self.players if p.chips > 0]
         
     def init_game(self):
         self.btn_pos = random.randint(0, len(self.players)- 1)
@@ -136,10 +134,13 @@ class Table():
         while(len(self.players) > 1):
             round = Round(self)
             round.start()
-            self.btn_pos = (self.btn_pos + 1) % len(self.players) - 1
+            # need to handle btn passing when players eliminated
+            #self.btn_pos = (self.btn_pos + 1) % len(self.players) - 1
             break
             # implement
-        
+        print(self)
+
+
     def __str__(self):
         return '\n'.join(str(player) for player in self.players)
 

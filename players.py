@@ -5,8 +5,17 @@ class Player():
     
     def __init__(self, starting_stack, name = None):
         self.chips = starting_stack
-        self.holecards = None 
+        self._holecards = [None] * 2 
         self.name = name or 'Unnamed'
+        self.strongest_five = [None] * 5
+
+    @property
+    def holecards(self):
+        return self._holecards
+
+    @holecards.setter
+    def holecards(self, cards):
+        self._holecards[:] = cards[:]
 
     def __str__(self):
         cards = '{0}-{1}'.format(self.holecards[0], self.holecards[1])
@@ -48,6 +57,6 @@ class Bot(Player):
     def __init__(self, starting_stack):
         self.chips = starting_stack
         self.name = self.available_botnames.pop()
-        self.holecards = None
+        self._holecards = [None] * 2
 
 
