@@ -16,9 +16,9 @@ class Pot():
         self.total += amt
         self.contributions[player] += amt
 		
-	def award_pot(self):
-		"""Awards pot total to the winner(s)"""
-		pass
+    def award_pot(self):
+	"""Awards pot total to the winner(s)"""
+	pass
 
 
 class Round():
@@ -42,11 +42,11 @@ class Round():
             pl.receive_hand(self.deck[self.deck.idx-2: self.deck.idx])
             self.deck.idx -= 2 
     
-	def prep_preflop_queue(self):
-		return deque([self.players[btn::-1]].append(self.players[btn+1:])
+    def prep_preflop_queue(self):
+    	return deque([self.players[btn::-1]].append(self.players[btn+1:])
 		
-	def prep_postflop_queue(self):
-		pass
+    def prep_postflop_queue(self):
+	pass
 	
     def play_preflop(self):
         """Processes a round of betting for preflop."""
