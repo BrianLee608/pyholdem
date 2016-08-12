@@ -51,7 +51,7 @@ class Player():
 class Bot(Player):
     """Extension of Player with AI strategies"""
 
-    available_botnames = set(['Albert', 'Paul', 'Jen', 'Tom', 'Gavin']) 
+    available_botnames = set(['Albert', 'Paul', 'Jen', 'Tom', 'Gavin', 'Kat']) 
 
     def __init__(self, starting_stack):
         self.chips = starting_stack
