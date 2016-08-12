@@ -44,8 +44,8 @@ class Player():
     def shove(self, pot):
         self.bet(self.chips, pot)
 
-    def act(self):
-        pass
+    def act(self, pot):
+        return None
 
 
 class Bot(Player):

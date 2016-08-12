@@ -5,17 +5,41 @@ from deck import Deck
 import random
 
 class Pot():
-    """Encapsulates a pot structure and handles proper chip distribution based
-        on amount contributed by each player"""
+    """Encapsulates a pot structure and handles proper chip 
+       distribution based on amount contributed by each player"""
+
+    # Constants used to categorize each Player's most recent action
+    NO_ACTION = 0
+    FOLD = 1
+    CHECK = 2
+    CALL = 3
+    RAISE = 4
 
     def __init__(self, players):
         self.total = 0
-        self.contributions = {pl:0 for pl in players}
+        self.current_bet = 0
+        self.players = {pl:{} for pl in players}
+        for pl in self.players:
+            self.players[pl] = {'contributed': 0,
+                               'latest_action': Pot.NO_ACTION,
+                               'latest_bet': 0,
+                               'folded': False
+                               }
+
                                           
     def accept_bet(self, player, amt):
         self.total += amt
-        self.contributions[player] += amt
-		
+        self.players[player]['contributed'] += amt
+        self.players[player]['latest_action'] = Pot.RAISE
+        self.players[player]['latest_bet'] = amt
+        if amt > self.current_bet:
+            self.current_bet = amt
+
+    def get_latest_action(self, player):
+        """Returns the latest action committed by player"""
+
+        return self.players[player]['latest_action']
+
     def award_pot(self):
         """Awards pot total to the winner(s)"""
         pass
@@ -27,7 +51,7 @@ class Round():
         self.players = [pl for pl in table.players if pl.chips > 0]
         self.deck = table.deck
         self.pot = Pot(self.players)
-        self.btn = table.btn_idx
+        self.bb = table.bb_idx
 
     def start(self):
         self.deck.shuffle_deck()
@@ -41,7 +65,10 @@ class Round():
             pl.receive_hand(self.deck[self.deck.idx-2: self.deck.idx])
             self.deck.idx -= 2 
     
-    def prep_preflop_queue(self):
+    def force_blind_post(self, pl, amt):
+        pl.bet(amt, self.pot)
+
+    def get_preflop_queue(self):
         """Prepares an action queue based on blind positions.
 
         Actions are processed from right to left so immediate actors go
@@ -52,19 +79,42 @@ class Round():
         deque   = [BB SB D UTG+2 UTG+1 UTG]
 
         """
+        
+        queue = self.players[self.bb::-1] + self.players[:self.bb:-1]
+        return deque(queue, maxlen = len(self.players))
 
-        return deque(self.players[self.btn::-1] + self.players[:self.btn:-1])
-
-    def prep_postflop_queue(self):
+    def get_postflop_queue(self):
         """Prepares action queue where BTN last to act (index 0)."""
+        
+        queue = self.players[0] + self.players[:0:-1]
+        return deque(queue, maxlen = len(self.players))
 
-        return deque([self.players[0]] + self.players[:0:-1])
+    def process_bets(self, action_queue):
+        """Processes a round of betting for a certain street"""
+        
+        acted = deque(maxlen = len(action_queue))
+        
+        while action_queue:
+            pl = action_queue.pop()
+            pl.act(self.pot)
+            
+            if self.pot.get_latest_action(pl) == Pot.RAISE:
+                n = len(acted)
+                action_queue.extendleft([acted.popleft() for _ in range(n)])
+            
+            acted.appendleft(pl)
+            # continue implementing here. right now it infinitely loops
+            # because the blinds will always have as latest_Action of raise
+            # because Player.act hasn't been implemented yet!
 
     def play_preflop(self):
         """Processes a round of betting for preflop."""
         
-
-        queue = self.prep_preflop_queue()
+        self.force_blind_post(self.players[self.bb-1], Table.SB)
+        self.force_blind_post(self.players[self.bb], Table.BB)
+        
+        action_queue = self.get_preflop_queue()
+        self.process_bets(action_queue)
         
     def __str__(self):
         return '\n'.join(str(player) for player in self.players)
@@ -80,7 +130,7 @@ class Table():
         queue.extend([Bot(self.BB * num_bb) for _ in range(1, seats)])
         random.shuffle(queue) # randomize positions
         self.players = deque(queue, maxlen=seats)
-        self.btn_idx = 1 if seats == 2 else 2
+        self.bb_idx = 1 if seats == 2 else 2
         self.deck = Deck()
         self.folded = []
 
