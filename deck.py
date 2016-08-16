@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!usr/bin/python
 from collections import namedtuple
 import random
 

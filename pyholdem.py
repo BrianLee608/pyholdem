@@ -23,17 +23,28 @@ class Pot():
             self.players[pl] = {'contributed': 0,
                                'latest_action': Pot.NO_ACTION,
                                'latest_bet': 0,
-                               'folded': False
+                               'folded': False,
+                               'allin': False,
                                }
+    
+    def accept_check(self, player):
+        self.players[player]['latest_action'] = Pot.CHECK
+         
+    def accept_fold(self, player):
+        self.players[player]['latest_action'] = Pot.FOLD
 
-                                          
     def accept_bet(self, player, amt):
         self.total += amt
         self.players[player]['contributed'] += amt
-        self.players[player]['latest_action'] = Pot.RAISE
         self.players[player]['latest_bet'] = amt
         if amt > self.current_bet:
             self.current_bet = amt
+            self.players[player]['latest_action'] = Pot.RAISE
+        else:
+            self.players[player]['latest_action'] = Pot.CALL
+        
+        if player.chips == 0:
+            self.players[player]['allin'] = True
 
     def get_latest_action(self, player):
         """Returns the latest action committed by player"""
@@ -89,11 +100,12 @@ class Round():
         queue = self.players[0] + self.players[:0:-1]
         return deque(queue, maxlen = len(self.players))
 
-    def process_bets(self, action_queue):
+    def process_bets(self, action_queue, street):
         """Processes a round of betting for a certain street"""
         
         acted = deque(maxlen = len(action_queue))
-        
+        print(street)
+
         while action_queue:
             pl = action_queue.pop()
             pl.act(self.pot)
@@ -114,7 +126,7 @@ class Round():
         self.force_blind_post(self.players[self.bb], Table.BB)
         
         action_queue = self.get_preflop_queue()
-        self.process_bets(action_queue)
+        self.process_bets(action_queue, 'Preflop')
         
     def __str__(self):
         return '\n'.join(str(player) for player in self.players)
